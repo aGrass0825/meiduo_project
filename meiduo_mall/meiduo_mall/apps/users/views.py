@@ -14,3 +14,7 @@ class RegisterView(View):
         :return: 注册界面
         """
         return render(request, 'register.html')
+
+    def post(self, request):
+        """实现用户注册逻辑"""
+        pass
