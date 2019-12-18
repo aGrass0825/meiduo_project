@@ -77,7 +77,7 @@ let vm = new Vue({
             this.check_mobile();
             this.check_allow();
 
-            if(this.error_name == true || this.error_password == true || this.password2 == true || this.error_mobile == true || this.error_allow == true){
+            if(this.error_name == true || this.error_password == true || this.error_password2 == true || this.error_mobile == true || this.error_allow == true){
                 window.event.returnValue = false;
             }
         },
