@@ -1,15 +1,16 @@
-import random
-
+import random, logging
 from django import http
+from django.views import View
+from django_redis import get_redis_connection
 from django.shortcuts import render
 
 from meiduo_mall.utils.response_code import RETCODE
 from verifications.libs.yuntongxun.ccp_sms import CCP
+from verifications.libs.captcha.captcha import captcha
 from . import constants
 # Create your views here.
-from django.views import View
-from verifications.libs.captcha.captcha import captcha
-from django_redis import get_redis_connection
+# 创建日志输出器
+logger = logging.getLogger('django')
 
 
 class SMSCodeView(View):
@@ -32,6 +33,10 @@ class SMSCodeView(View):
 
         # 创建链接到redis的对象
         redis_conn = get_redis_connection("verify_code")
+        # 提取短信验证码标记
+        send_flag = redis_conn.get("sms_flag_%s" % mobile)
+        if send_flag:
+            return http.JsonResponse({"code": RETCODE.THROTTLINGERR, "errmsg": "发送短信过于频繁"})
         # 提出图形验证码
         image_code_server = redis_conn.get("img_%s" % uuid)
         if image_code_server is None:
@@ -51,16 +56,22 @@ class SMSCodeView(View):
         # 生成短信验证码：发给第三方运通讯
         sms_code = "%06d" % random.randint(0, 999999)
 
+        # 日志
+        logger.info(sms_code)
+        # 创建redis管道
+        pl = redis_conn.pipeline()
+        # 将redis添加到请求队列中
         # 保存短信验证码
-        redis_conn.setex("sms_%s" % mobile, constants.SMS_CODE_REDIS_EXPIRES, sms_code)
-
+        pl.setex("sms_%s" % mobile, constants.SMS_CODE_REDIS_EXPIRES, sms_code)
+        # 保存短信验证码的标记
+        pl.setex("sms_flag_%s" % mobile, constants.SEND_SMS_CODE_INTERVAL, 1)
+        # 执行请求
+        pl.execute()
         # 发送短信验证码
-        CCP().send_template_sms(mobile, [sms_code, constants.SMS_CODE_REDIS_EXPIRES // 60], constants.SEND_SMS_TEMPLATE_ID)
+        # CCP().send_template_sms(mobile, [sms_code, constants.SMS_CODE_REDIS_EXPIRES // 60], constants.SEND_SMS_TEMPLATE_ID)
 
         # 响应结果
         return http.JsonResponse({"code": RETCODE.OK, "errmsg": "发送短信成功"})
-
-
 
 
 class ImageCodeView(View):

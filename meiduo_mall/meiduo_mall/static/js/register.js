@@ -66,6 +66,7 @@ let vm = new Vue({
                         let num = 60;
                         let t = setInterval(() =>{
                             if(num == 1){//倒计时即将结束
+                                this.error_image_code = false;
                                 clearInterval(t);//停止回调函数的执行
                                 this.sms_code_tip = '获取短信验证码';
                                 this.generate_image_code();
@@ -82,6 +83,9 @@ let vm = new Vue({
                         if(response.data.code == "4001"){
                             this.error_image_code_message = response.data.errmsg;
                             this.error_image_code = true;
+                        }else{
+                            this.error_sms_code_message = response.data.errmsg;
+                            this.error_sms_code = true;
                         }
                         this.send_flag = false;
                     }
@@ -174,6 +178,15 @@ let vm = new Vue({
                 this.error_image_code = false;
             }
         },
+        //校验短信验证码
+        check_sms_code(){
+            if(this.sms_code.length != 6 ){
+                this.error_sms_code_message = '请填写短信验证码';
+                this.error_sms_code = true;
+            }else {
+                this.error_sms_code = false;
+            }
+        },
         // 校验是否勾选协议
         check_allow(){
             if(!this.allow){
@@ -189,9 +202,10 @@ let vm = new Vue({
             this.check_password();
             this.check_password2();
             this.check_mobile();
+            this.check_sms_code();
             this.check_allow();
 
-            if(this.error_name == true || this.error_password == true || this.error_password2 == true || this.error_mobile == true || this.error_allow == true){
+            if(this.error_name == true || this.error_password == true || this.error_password2 == true || this.error_mobile == true || this.error_sms_code == true || this.error_allow == true){
                 window.event.returnValue = false;
             }
         },
