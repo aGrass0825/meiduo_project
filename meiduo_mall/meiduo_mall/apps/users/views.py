@@ -1,6 +1,6 @@
 import re
 from django import http
-from django.contrib.auth import login
+from django.contrib.auth import login, authenticate
 from django.db import DatabaseError
 from django.shortcuts import render, redirect
 from django.urls import reverse
@@ -10,6 +10,44 @@ from django_redis import get_redis_connection
 from users.models import User
 from meiduo_mall.utils.response_code import RETCODE
 # Create your views here.
+
+
+class LoginView(View):
+    """用户登录"""
+    def get(self, request):
+        """返回登录界面"""
+        return render(request, 'login.html')
+
+    def post(self, request):
+        """
+        实现登录逻辑
+        :param request: 请求对象
+        :return: 登录结果
+        """
+        # 接收请求 提取参数
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        remembered = request.POST.get("remembered")
+
+        if not all([username, password]):
+            return http.HttpResponseForbidden('缺少必传参数')
+        if not re.match(r'^[a-zA-Z0-9_-]{5,20}$', username):
+            return http.HttpResponseForbidden('请输入正确的用户名或手机号')
+        if not re.match(r'^[0-9A-Za-z]{8,20}$', password):
+            return http.HttpResponseForbidden('密码最少8位，最长20位')
+
+        # 认证登录用户
+        user = authenticate(username=username, password=password)
+        if user is None:
+            return render(request, 'login.html', {'account_errmsg': '用户名或密码错误'})
+        # 状态保持
+        login(request, user)
+        if remembered != 'on':
+            request.session.set_expiry(0)  # 0表示会话结束状态保持结束
+        else:
+            request.session.set_expiry(None)  # None表示默认session保存两周
+        # 响应登录结果 重定向到首页
+        return redirect(reverse('contents:index'))
 
 
 class UsernameCountView(View):

@@ -59,7 +59,7 @@
 							<span class="error_tip" v-show="error_sms_code">[[ error_sms_code_message ]]</span>
 {#                            校验短信验证码是否正确#}
                             {% if sms_code_errmsg %}
-                                <span class="error_tip">{{ sms_code_errmsg }}</span>
+                                <span class="error_tip" v-show="error_register">{{ sms_code_errmsg }}</span>
                             {% endif %}
 						</li>
 						<li class="agreement">

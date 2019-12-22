@@ -25,6 +25,7 @@ let vm = new Vue({
         error_allow: false,
         error_image_code: false,
         error_sms_code: false,
+        error_register: true,
 
         error_name_message: '',
         error_mobile_message: '',
@@ -34,7 +35,6 @@ let vm = new Vue({
 
     mounted() {//钩子函数
         this.generate_image_code();
-
     },
     methods: {
          generate_image_code(){
@@ -76,6 +76,7 @@ let vm = new Vue({
                                 this.sms_code_tip = num + '秒';
                                 this.error_image_code_message = response.data.errmsg;
                                 this.error_image_code = true;
+                                this.error_register = false;
                             }
 
                         }, 1000)
