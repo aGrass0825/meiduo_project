@@ -1,15 +1,40 @@
 import re
 from django import http
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout
 from django.db import DatabaseError
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views import View
 from django_redis import get_redis_connection
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 from users.models import User
 from meiduo_mall.utils.response_code import RETCODE
 # Create your views here.
+
+
+class UserInfoView(LoginRequiredMixin, View):
+    """用户中心"""
+    def get(self, request):
+        """提供用户中心展示界面"""
+        # if request.user.is_authenticated():
+        #     return render(request, 'user_center_info.html')
+        # else:
+        #     return redirect(reverse('users:login'))
+
+        return render(request, 'user_center_info.html')
+
+
+
+
+class LogoutView(View):
+    """用户退出登录"""
+    def get(self, request):
+        """清除状态保持"""
+        logout(request)
+        response = redirect(reverse('contents:index'))
+        response.delete_cookie('username')
+        return response
 
 
 class LoginView(View):
@@ -46,8 +71,16 @@ class LoginView(View):
             request.session.set_expiry(0)  # 0表示会话结束状态保持结束
         else:
             request.session.set_expiry(None)  # None表示默认session保存两周
-        # 响应登录结果 重定向到首页
-        return redirect(reverse('contents:index'))
+        # 取出next
+        next = request.GET.get('next')  # 返回的就是个字符串 查询字符串传参
+        if next:
+            response = redirect(next)  # next不用字符串
+        else:
+            # 响应登录结果 重定向到首页
+            response = redirect(reverse('contents:index'))
+        # 为了首页显示用户登录信息，将用户名缓存到cookie中
+        response.set_cookie('username', user.username, max_age=3600*24*15)
+        return response
 
 
 class UsernameCountView(View):
@@ -126,9 +159,11 @@ class RegisterView(View):
             user = User.objects.create_user(username=username, password=password, mobile=mobile)
         except DatabaseError:
             return render(request, 'register.html', {'register_errmsg': '注册失败'})
-
+        # 实现状态保持
         login(request, user)
-        # 响应注册结果
-        # return http.HttpResponse('注册成功，重定向到首页')
-        return redirect(reverse('contents:index'))
+        # 响应登录结果 重定向到首页
+        response = redirect(reverse('contents:index'))
+        # 为了首页显示用户登录信息，将用户名缓存到cookie中
+        response.set_cookie('username', user.username, max_age=3600 * 24 * 15)
+        return response
 
