@@ -16,8 +16,7 @@ from users.models import User
 # Create your views here.
 
 # 创建日志输出器
-
-logger = logging.Logger('django')
+logger = logging.getLogger('django')
 
 
 class QQAuthUserView(View):

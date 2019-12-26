@@ -1,4 +1,6 @@
-import re
+import re, json
+
+import logging
 from django import http
 from django.contrib.auth import login, authenticate, logout
 from django.db import DatabaseError
@@ -10,7 +12,85 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 
 from users.models import User
 from meiduo_mall.utils.response_code import RETCODE
+from meiduo_mall.utils.views import LoginRequiredJSONMixin
+from celery_tasks.email.tasks import send_verify_email
+from users.utils import generate_verify_email_url
+from users.utils import check_verify_email_token
 # Create your views here.
+
+logger = logging.getLogger('django')  # 创建日志输出器
+
+
+
+class AddressView(LoginRequiredMixin, View):
+    """用户收获地址"""
+    def get(self, request):
+        """
+        提供收获地址界面
+        :param request:请求报文
+        :return: render
+        """
+        return render(request, '.html')
+
+
+
+
+
+class VerifyEmailView(View):
+    """接收用户激活邮箱发送的请求"""
+    def get(self, request):
+        """
+        实现邮箱的激活逻辑
+        :param request:请求报文
+        :return:
+        """
+        # 接收参数
+        token = request.GET.get("token")
+        # 校验参数
+        if token is None:
+            return http.HttpResponseBadRequest('缺少token')
+        user = check_verify_email_token(token)
+        # 修改email_active的值为True
+        try:
+            user.email_active = True
+            user.save()
+        except Exception as e:
+            logger.error(e)
+            return http.HttpResponseServerError('激活邮件失败')
+        # 响应结果
+        return redirect(reverse("users:info"))
+
+
+class EmaliView(LoginRequiredJSONMixin, View):
+    """添加邮箱"""
+    def put(self, request):
+        """
+        实现邮箱接收的逻辑
+        :param request: 请求报文
+        :return:
+        """
+        # 接收参数
+        json_dict = json.loads(request.body.decode())  # 前端是json非表单传参，后端接收必须用request.body接收。
+        email = json_dict.get('email')
+        # 校验参数
+        if not email:
+            return http.HttpResponseForbidden('缺少email参数')
+        if not re.match(r'^[a-z0-9][\w\.\-]*@[a-z0-9\-]+(\.[a-z]{2,5}){1,2}$', email):
+            return http.HttpResponseForbidden('参数email错误')
+        # 赋值email字段
+        try:
+            request.user.email = email  # 将用户传入的邮箱保存到用户的email字段中，传入的用户(request.user)和邮箱绑定在一起。
+            request.user.save()
+        except Exception as e:
+            logger.error(e)
+            return http.JsonResponse({"code": RETCODE.DBERR, "errmsg": "添加email失败"})
+        #celery异步发送邮箱
+        verify_url = generate_verify_email_url(request.user)
+        # delay开关，调用celery执行调用
+        send_verify_email.delay(email, verify_url)
+        # 响应邮箱添加结果
+        return http.JsonResponse({"code": RETCODE.OK, "errmsg": "添加email成功"})
+
 
 
 class UserInfoView(LoginRequiredMixin, View):
@@ -21,8 +101,14 @@ class UserInfoView(LoginRequiredMixin, View):
         #     return render(request, 'user_center_info.html')
         # else:
         #     return redirect(reverse('users:login'))
+        context = {
+            "username": request.user.username,
+            "mobile": request.user.mobile,
+            "email": request.user.email,
+            "email_active": request.user.email_active
+        }
 
-        return render(request, 'user_center_info.html')
+        return render(request, 'user_center_info.html', context)
 
 
 
