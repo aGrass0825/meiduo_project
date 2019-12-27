@@ -21,7 +21,6 @@ from users.utils import check_verify_email_token
 logger = logging.getLogger('django')  # 创建日志输出器
 
 
-
 class AddressView(LoginRequiredMixin, View):
     """用户收获地址"""
     def get(self, request):
@@ -30,7 +29,7 @@ class AddressView(LoginRequiredMixin, View):
         :param request:请求报文
         :return: render
         """
-        return render(request, '.html')
+        return render(request, 'user_center_site.html')
 
 
 

@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'contents',
     'verifications',
     'oauth',
+    'areas',
 ]
 
 MIDDLEWARE = [
@@ -204,6 +205,7 @@ LOGGING = {
             'filters': ['require_debug_true'],
             'class': 'logging.StreamHandler',
             'formatter': 'simple'
+
         },
         'file': {  # 向文件中输出日志
             'level': 'INFO',
