@@ -81,7 +81,7 @@
 					<li><span>电子邮箱：</span><b>[[ address.email ]]</b></li>
 				</ul>
 				<div class="down_btn">
-                    <a v-if="address.id!=default_address_id">设为默认</a>
+                    <a @click="set_default(index)" v-if="address.id!=default_address_id">设为默认</a>
                     <a @click="show_edit_site(index)" href="javascript:;" class="edit_icon">编辑</a>
 				</div>
 			</div>

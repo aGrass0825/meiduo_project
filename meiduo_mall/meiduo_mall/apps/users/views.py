@@ -23,7 +23,23 @@ from users import constants
 logger = logging.getLogger('django')  # 创建日志输出器
 
 
-
+class DefaultAddressView(LoginRequiredJSONMixin, View):
+    """设置默认地址"""
+    def put(self, request, address_id):
+        """
+        设置默认地址
+        :param request:
+        :return:
+        """
+        try:
+            # 接收参数address_id 查询参数
+            address = Address.objects.get(id=address_id)
+            request.user.default_address = address  # 将查询的地址赋值给当前登录的用户默认地址
+            request.user.save()  # 推送到数据库
+        except Exception as e:
+            logger.error(e)
+            return http.JsonResponse({"code": RETCODE.DBERR, "errmsg": "默认地址设置失败"})
+        return http.JsonResponse({"code": RETCODE.OK, "errmsg": "OK"})
 
 
 class UpdateDestroyAddressView(LoginRequiredJSONMixin, View):
