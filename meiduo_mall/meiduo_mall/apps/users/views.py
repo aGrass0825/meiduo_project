@@ -23,6 +23,27 @@ from users import constants
 logger = logging.getLogger('django')  # 创建日志输出器
 
 
+class UpdateTitleAddressView(LoginRequiredJSONMixin, View):
+    """设置地址标题"""
+    def put(self, request, address_id):
+        """
+        设置地址标题
+        :param request:
+        :return:
+        """
+        json_str = request.body.decode()
+        json_dict = json.loads(json_str)
+        title = json_dict.get('title')
+        try:
+            address = Address.objects.get(id=address_id)
+            address.title = title
+            address.save()
+        except Exception as e:
+            logger.error(e)
+            return http.JsonResponse({"code": RETCODE.DBERR, "errmsg": "设置地址标题错误"})
+        return http.JsonResponse({"code": RETCODE.OK, "errmsg": "OK"})
+
+
 class DefaultAddressView(LoginRequiredJSONMixin, View):
     """设置默认地址"""
     def put(self, request, address_id):
