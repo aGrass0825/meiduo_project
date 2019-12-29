@@ -9,6 +9,7 @@ from celery_tasks.sms import constants
 from meiduo_mall.utils.response_code import RETCODE
 from verifications.libs.captcha.captcha import captcha
 from celery_tasks.sms.tasks import send_sms_code
+
 # Create your views here.
 # 创建日志输出器
 logger = logging.getLogger('django')
@@ -16,6 +17,7 @@ logger = logging.getLogger('django')
 
 class SMSCodeView(View):
     """短信验证码"""
+
     def get(self, request, mobile):
         """
 
@@ -78,6 +80,7 @@ class SMSCodeView(View):
 
 class ImageCodeView(View):
     """图形验证码"""
+
     def get(self, request, uuid):
         """
         图形验证

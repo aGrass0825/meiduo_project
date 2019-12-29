@@ -7,13 +7,15 @@ from django.shortcuts import render
 
 from meiduo_mall.utils.response_code import RETCODE
 from areas.models import Area
+
 # Create your views here.
-#创建日志输出器
+# 创建日志输出器
 logger = logging.getLogger("django")
 
 
 class AreasView(View):
     """省市区三级联动"""
+
     def get(self, request):
         """
 
@@ -71,5 +73,3 @@ class AreasView(View):
                     logger.error(e)
                     return JsonResponse({"code": RETCODE.DBERR, "errmsg": "城市或区数据错误"})
             return JsonResponse({"code": RETCODE.OK, "errmsg": "OK", "sub_data": sub_data})
-
-

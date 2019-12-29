@@ -13,6 +13,7 @@ from oauth.models import OAuthQQUser
 from meiduo_mall.utils.response_code import RETCODE
 from oauth.utils import generate_access_token, check_access_token
 from users.models import User
+
 # Create your views here.
 
 # 创建日志输出器
@@ -21,6 +22,7 @@ logger = logging.getLogger('django')
 
 class QQAuthUserView(View):
     """处理QQ登录回调界面"""
+
     def get(self, request):
         """Oauth2.0认证"""
         code = request.GET.get('code')
@@ -106,15 +108,9 @@ class QQAuthUserView(View):
         return response
 
 
-
-
-
-
-
-
-
 class QQAuthURLView(View):
     """提供qq登录扫码界面"""
+
     def get(self, request):
         """"""
         next = request.GET.get('next')
@@ -123,8 +119,3 @@ class QQAuthURLView(View):
         login_url = oauth.get_qq_url()
 
         return http.JsonResponse({"code": RETCODE.OK, "errmsg": "OK", "login_url": login_url})
-
-
-
-
-

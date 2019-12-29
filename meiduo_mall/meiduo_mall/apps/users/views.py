@@ -18,22 +18,74 @@ from users.utils import generate_verify_email_url
 from users.utils import check_verify_email_token
 from users.models import Address
 from users import constants
+
 # Create your views here.
 
 logger = logging.getLogger('django')  # 创建日志输出器
 
 
+class ChangePasswordView(LoginRequiredMixin, View):
+    """修改密码"""
+
+    def get(self, request):
+        """提供修改密码界面"""
+        return render(request, 'user_center_pass.html')
+
+    def post(self, request):
+        """
+        修改密码，接收前端发送的
+        :param request:
+        :return:
+        """
+        # 接收参数
+        old_password = request.POST.get('old_password')
+        new_password = request.POST.get('new_password')
+        new_password2 = request.POST.get('new_password2')
+        # 校验参数
+        if not all([old_password, new_password, new_password2]):
+            return http.HttpResponseForbidden('缺少必传参数')
+        try:
+            ret = request.user.check_password(old_password)
+            print(ret)
+        except Exception as e:
+            logger.error(e)
+            return render(request, 'user_center_pass.html', {'origin_password_errmsg': '原始密码错误'})
+        if not re.match(r'^[0-9A-Za-z]{8,20}$', new_password):
+            return http.HttpResponseForbidden('密码最少8位，最长20位')
+        if new_password2 != new_password:
+            return http.HttpResponseForbidden('新密码不能和旧密码一致')
+        # 修改密码,密码写入数据库
+        try:
+            request.user.set_password(new_password)
+            request.user.save()
+        except Exception as e:
+            logger.error(e)
+            return render(request, 'user_center_pass.html', {'change_password_errmsg': '密码修改失败'})
+        # 退出状态保持
+        logout(request)
+        # 响应结果 重定向导登录界面，让用户用新密码重新登录
+        response = redirect(reverse('users:login'))
+        response.delete_cookie('username')  # 删除用户cookie
+        return response
+
+
 class UpdateTitleAddressView(LoginRequiredJSONMixin, View):
     """设置地址标题"""
+
     def put(self, request, address_id):
         """
         设置地址标题
         :param request:
         :return:
         """
+        # 接收参数
         json_str = request.body.decode()
         json_dict = json.loads(json_str)
         title = json_dict.get('title')
+        # 校验参数
+        if title is None:
+            return http.HttpResponseForbidden('缺少title')
+        # 查询数据，修改结果
         try:
             address = Address.objects.get(id=address_id)
             address.title = title
@@ -41,11 +93,13 @@ class UpdateTitleAddressView(LoginRequiredJSONMixin, View):
         except Exception as e:
             logger.error(e)
             return http.JsonResponse({"code": RETCODE.DBERR, "errmsg": "设置地址标题错误"})
+        # 响应结果
         return http.JsonResponse({"code": RETCODE.OK, "errmsg": "OK"})
 
 
 class DefaultAddressView(LoginRequiredJSONMixin, View):
     """设置默认地址"""
+
     def put(self, request, address_id):
         """
         设置默认地址
@@ -65,6 +119,7 @@ class DefaultAddressView(LoginRequiredJSONMixin, View):
 
 class UpdateDestroyAddressView(LoginRequiredJSONMixin, View):
     """修改和删除地址"""
+
     def put(self, request, address_id):
         """
         修改地址
@@ -139,11 +194,12 @@ class UpdateDestroyAddressView(LoginRequiredJSONMixin, View):
         except Exception as e:
             logger.error(e)
             return http.JsonResponse({"code": RETCODE.DBERR, "errmsg": "删除失败"})
-        return http.JsonResponse({"code": RETCODE.OK, "errmsg": "OK"})
+        return http.JsonResponse({"code": RETCODE.OK, "errmsg": "删除成功"})
 
 
 class CreatAdderssView(LoginRequiredJSONMixin, View):
     """新增地址"""
+
     def post(self, request):
         """
         实现新增地址逻辑
@@ -217,14 +273,16 @@ class CreatAdderssView(LoginRequiredJSONMixin, View):
 
 class AddressView(LoginRequiredMixin, View):
     """用户收货地址"""
+
     def get(self, request):
         """
-        提供收货地址界面
+        查询并展示用户地址信息
         :param request:
         :return:
         """
         # 模型类操作数据库取出符合条件模型集合
-        addresses = Address.objects.filter(user=request.user, is_deleted=False)
+        addresses = Address.objects.filter(user=request.user, is_deleted=False)  # 前端用钩子函数显示，只显示is_deleted=False的
+        # 地址模型列表转换成字典列表
         address_dict_list = []
         for address in addresses:
             address_dict = {
@@ -250,6 +308,7 @@ class AddressView(LoginRequiredMixin, View):
 
 class VerifyEmailView(View):
     """接收用户激活邮箱发送的请求"""
+
     def get(self, request):
         """
         实现邮箱的激活逻辑
@@ -275,6 +334,7 @@ class VerifyEmailView(View):
 
 class EmaliView(LoginRequiredJSONMixin, View):
     """添加邮箱"""
+
     def put(self, request):
         """
         实现邮箱接收的逻辑
@@ -296,7 +356,7 @@ class EmaliView(LoginRequiredJSONMixin, View):
         except Exception as e:
             logger.error(e)
             return http.JsonResponse({"code": RETCODE.DBERR, "errmsg": "添加email失败"})
-        #celery异步发送邮箱
+        # celery异步发送邮箱
         verify_url = generate_verify_email_url(request.user)
         # delay开关，调用celery执行调用
         send_verify_email.delay(email, verify_url)
@@ -306,6 +366,7 @@ class EmaliView(LoginRequiredJSONMixin, View):
 
 class UserInfoView(LoginRequiredMixin, View):
     """用户中心"""
+
     def get(self, request):
         """提供用户中心展示界面"""
         # if request.user.is_authenticated():
@@ -324,6 +385,7 @@ class UserInfoView(LoginRequiredMixin, View):
 
 class LogoutView(View):
     """用户退出登录"""
+
     def get(self, request):
         """清除状态保持"""
         logout(request)
@@ -334,6 +396,7 @@ class LogoutView(View):
 
 class LoginView(View):
     """用户登录"""
+
     def get(self, request):
         """返回登录界面"""
         return render(request, 'login.html')
@@ -374,7 +437,7 @@ class LoginView(View):
             # 响应登录结果 重定向到首页
             response = redirect(reverse('contents:index'))
         # 为了首页显示用户登录信息，将用户名缓存到cookie中
-        response.set_cookie('username', user.username, max_age=3600*24*15)
+        response.set_cookie('username', user.username, max_age=3600 * 24 * 15)
         return response
 
 
@@ -393,6 +456,7 @@ class UsernameCountView(View):
 
 class MobileCountView(View):
     """判断手机号是否重复"""
+
     def get(self, request, mobile):
         """
         :param request: 请求对象
@@ -461,4 +525,3 @@ class RegisterView(View):
         # 为了首页显示用户登录信息，将用户名缓存到cookie中
         response.set_cookie('username', user.username, max_age=3600 * 24 * 15)
         return response
-
