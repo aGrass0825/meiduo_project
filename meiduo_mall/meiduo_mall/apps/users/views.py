@@ -44,11 +44,12 @@ class ChangePasswordView(LoginRequiredMixin, View):
         # 校验参数
         if not all([old_password, new_password, new_password2]):
             return http.HttpResponseForbidden('缺少必传参数')
-        try:
-            ret = request.user.check_password(old_password)
-            print(ret)
-        except Exception as e:
-            logger.error(e)
+        # try:
+        ret = request.user.check_password(old_password)
+        # ret=false 表示原始密码错误， ret=true表示原始密码正确
+        if not ret:
+            # except Exception as e:
+            #     logger.error(e)
             return render(request, 'user_center_pass.html', {'origin_password_errmsg': '原始密码错误'})
         if not re.match(r'^[0-9A-Za-z]{8,20}$', new_password):
             return http.HttpResponseForbidden('密码最少8位，最长20位')
