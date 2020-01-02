@@ -200,6 +200,7 @@ let vm = new Vue({
                             if (response.data.code == '0') {
                                 // 局部刷新界面：展示所有地址信息，将新的地址添加到头部
                                 this.addresses.splice(0, 0, response.data.address);
+                                this.default_address_id = response.data.default_address_id;
                                 this.is_show_edit = false;
                             } else if (response.data.code == '4101') {
                                 location.href = '/login/?next=/addresses/';

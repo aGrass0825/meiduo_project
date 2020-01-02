@@ -249,7 +249,8 @@ class CreatAdderssView(LoginRequiredJSONMixin, View):
                 email=email
             )
             # 设置默认地址
-            if request.user.default_address is None:
+            if request.user.default_address is None or Address.objects.get(
+                    id=request.user.default_address_id).is_deleted == True:
                 request.user.default_address = address
                 request.user.save()
         except Exception as e:
@@ -267,9 +268,10 @@ class CreatAdderssView(LoginRequiredJSONMixin, View):
             "place": address.place,
             "mobile": address.mobile,
             "tel": address.tel,
-            "email": address.email
+            "email": address.email,
         }
-        return http.JsonResponse({"code": RETCODE.OK, "errmsg": "OK", "address": address_dict})
+        return http.JsonResponse({"code": RETCODE.OK, "errmsg": "OK", "address": address_dict,
+                                  'default_address_id': request.user.default_address_id})
 
 
 class AddressView(LoginRequiredMixin, View):
