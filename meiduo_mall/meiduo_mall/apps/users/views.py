@@ -18,10 +18,59 @@ from users.utils import generate_verify_email_url
 from users.utils import check_verify_email_token
 from users.models import Address
 from users import constants
-
+from goods.models import SKU
 # Create your views here.
 
 logger = logging.getLogger('django')  # 创建日志输出器
+
+
+class UserBrowseHistory(LoginRequiredJSONMixin, View):
+    """用户浏览记录"""
+
+    def post(self, request):
+        """保存用户浏览记录"""
+        # 接收参数
+        josn_str = request.body.decode()
+        json_dict = json.loads(josn_str)
+        sku_id = json_dict.get('sku_id')
+        # 校验参数
+        try:
+            # 查询数据库存不存在
+            SKU.objects.get(id=sku_id)
+        except SKU.DoesNotExist:
+            return http.HttpResponseForbidden('sku_id不存在')
+        # 用redis保存用户浏览记录 用户五种数据类型选择列表类型
+        redis_conn = get_redis_connection('history')  # 链接redis数据库
+        user_id = request.user.id  # 获取登录用户的id
+        pl = redis_conn.pipeline()
+        # 1.lrem去重
+        pl.lrem('history_%s' % user_id, 0, sku_id)
+        # 2.lpush保存
+        pl.lpush('history_%s' % user_id, sku_id)
+        # 3.ltrim截取
+        pl.ltrim('history_%s' % user_id, 0, 4)
+        # 执行
+        pl.execute()
+        # 响应结果
+        return http.JsonResponse({'code': RETCODE.OK, 'errmsg': 'OK'})
+
+    def get(self, request):
+        """提供用户查询浏览记录界面"""
+        redis_conn = get_redis_connection('history')
+        user_id = request.user.id
+        # 取出当前用户所有商品id
+        sku_ids = redis_conn.lrange('history_%s' % user_id, 0, -1)
+        # 根据取出的商品sku_ids从sql中取出商品信息
+        skus = []
+        for sku_id in sku_ids:
+            sku = SKU.objects.get(id=sku_id)
+            skus.append({
+                'id': sku.id,
+                'name': sku.name,
+                'default_image_url': sku.default_image.url,
+                'price': sku.price
+            })
+        return http.JsonResponse({'code': RETCODE.OK, 'errmsg': "OK", 'skus': skus})
 
 
 class ChangePasswordView(LoginRequiredMixin, View):
