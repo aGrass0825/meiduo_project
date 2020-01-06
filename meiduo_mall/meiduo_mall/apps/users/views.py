@@ -302,6 +302,7 @@ class AddressView(LoginRequiredMixin, View):
             }
             address_dict_list.append(address_dict)
         context = {
+            # "default_address_id": request.user.default_address_id or '0',  # 解决收货地址不展示
             "default_address_id": request.user.default_address_id,
             "addresses": address_dict_list
         }
