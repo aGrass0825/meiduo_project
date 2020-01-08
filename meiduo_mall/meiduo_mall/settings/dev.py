@@ -50,14 +50,15 @@ INSTALLED_APPS = [
     'oauth',
     'areas',
     'goods',  # 商品数据库模型子应用
-    'haystack'  # 搜索引擎的注册
+    'haystack',  # 搜索引擎的注册
+    'carts',  # 购物车
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
