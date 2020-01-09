@@ -52,19 +52,14 @@
                 <li><a href="#">买2免1</a></li>
             </ul>
         </div>
-        <div class="guest_cart fr">
+        <div @mouseenter="get_carts" class="guest_cart fr" v-cloak>
             <a href="{{ url('carts:info') }}" class="cart_name fl">我的购物车</a>
-            <div class="goods_count fl" id="show_count">2</div>
+            <div class="goods_count fl" id="show_count">[[ cart_total_count ]]</div>
             <ul class="cart_goods_show">
-                <li>
-                    <img src="{{ static('images/goods/goods001.jpg') }}" alt="商品图片">
-                    <h4>华为 HUAWEI P10 Plus 6GB+64GB 钻雕金 移动联通电信4G手机 双卡双待</h4>
-                    <div>1</div>
-                </li>
-                <li>
-                    <img src="{{ static('images/goods/goods002.jpg') }}" alt="商品图片">
-                    <h4>Apple iPhoneX 64GB 深空灰色 移动联通电信4G手机</h4>
-                    <div>1</div>
+                <li v-for="sku in carts">
+                    <img :src="sku.default_image_url" alt="商品图片">
+                    <h4>[[ sku.name ]]</h4>
+                    <div>[[ sku.count ]]</div>
                 </li>
             </ul>
         </div>
@@ -73,183 +68,6 @@
         <div class="navbar">
             <div class="sub_menu_con fl">
                 <h1 class="fl">商品分类</h1>
-                {#				<ul class="sub_menu">			#}
-                {#					<li>#}
-                {#						<div class="level1">#}
-                {#							<a href="http://shouji.jd.com/">手机</a><a href="#">运营商</a><a href="#">数码</a>#}
-                {#						</div>#}
-                {#						<div class="level2">#}
-                {#							<div class="list_group">#}
-                {#								<div class="group_name fl">手机通讯 &gt;</div>#}
-                {#								<div class="group_detail fl">#}
-                {#									<a href="list.html">手机</a>#}
-                {#									<a href="#">对讲机</a>#}
-                {#									<a href="#">以旧换新</a>#}
-                {#									<a href="#">手机维修</a>#}
-                {#								</div>						#}
-                {#							</div>#}
-                {#							<div class="list_group">#}
-                {#								<div class="group_name fl">运营商 &gt;</div>#}
-                {#								<div class="group_detail fl">#}
-                {#									<a href="#">合约机</a>#}
-                {#									<a href="#">选号码</a>#}
-                {#									<a href="#">固话宽带</a>#}
-                {#									<a href="#">办套餐</a>#}
-                {#									<a href="#">充话费/流量</a>#}
-                {#									<a href="#">中国电信</a>#}
-                {#									<a href="#">中国移动</a>#}
-                {#									<a href="#">中国联通</a>#}
-                {#									<a href="#">京东通信</a>#}
-                {#									<a href="#">170选号</a>#}
-                {#								</div>												#}
-                {#							</div>#}
-                {#						</div>#}
-                {#					</li>#}
-                {#					<li>#}
-                {#						<div class="level1">#}
-                {#							<a href="#">电脑</a><a href="#">办公</a>#}
-                {#						</div>#}
-                {#						<div class="level2">#}
-                {#							<div class="list_group">#}
-                {#								<div class="group_name fl">电脑 &gt;</div>#}
-                {#								<div class="group_detail fl">#}
-                {#									<a href="#">曲面电视</a>#}
-                {#									<a href="#">超薄电视</a>#}
-                {#									<a href="#">HDR电视</a>#}
-                {#									<a href="#">OLED电视</a>#}
-                {#									<a href="#">4K超清电视</a>#}
-                {#									<a href="#">人工智能电视</a>#}
-                {#									<a href="#">55英寸</a>#}
-                {#									<a href="#">65英寸</a>							        #}
-                {#								</div>#}
-                {#							</div>#}
-                {#						</div>#}
-                {#					</li>#}
-                {#					<li>#}
-                {#						<div class="level1">#}
-                {#							<a href="#">家居</a><a href="#">家具</a><a href="#">家装</a><a href="#">厨具</a>#}
-                {#						</div>#}
-                {#						<div class="level2">#}
-                {#							<div class="list_group">#}
-                {#								<div class="group_name fl">家具 &gt;</div>#}
-                {#								<div class="group_detail fl">#}
-                {#									<a href="#">曲面电视</a>#}
-                {#									<a href="#">超薄电视</a>#}
-                {#									<a href="#">HDR电视</a>#}
-                {#									<a href="#">OLED电视</a>#}
-                {#									<a href="#">4K超清电视</a>#}
-                {#									<a href="#">人工智能电视</a>#}
-                {#									<a href="#">55英寸</a>#}
-                {#									<a href="#">65英寸</a>							        #}
-                {#								</div>#}
-                {#							</div>#}
-                {#						</div>#}
-                {#					</li>#}
-                {#					<li>#}
-                {#						<div class="level1">#}
-                {#							<a href="#">男装</a><a href="#">女装</a><a href="#">童装</a><a href="#">内衣</a>#}
-                {#						</div>#}
-                {#						<div class="level2">#}
-                {#							<div class="list_group">#}
-                {#								<div class="group_name fl">男装 &gt;</div>#}
-                {#								<div class="group_detail fl">#}
-                {#									<a href="#">男装</a>					        #}
-                {#								</div>#}
-                {#							</div>#}
-                {#						</div>#}
-                {#					</li>#}
-                {#					<li>#}
-                {#						<div class="level1">#}
-                {#							<a href="#">女鞋</a><a href="#">箱包</a><a href="#">钟表</a><a href="#">珠宝</a>#}
-                {#						</div>#}
-                {#						<div class="level2">#}
-                {#							<div class="list_group">#}
-                {#								<div class="group_name fl">女鞋 &gt;</div>#}
-                {#								<div class="group_detail fl">#}
-                {#									<a href="#">女鞋</a>					        #}
-                {#								</div>#}
-                {#							</div>#}
-                {#						</div>#}
-                {#					</li>#}
-                {#					<li>#}
-                {#						<div class="level1">#}
-                {#							<a href="#">男鞋</a><a href="#">运动</a><a href="#">户外</a>#}
-                {#						</div>#}
-                {#						<div class="level2">#}
-                {#							<div class="list_group">#}
-                {#								<div class="group_name fl">男鞋 &gt;</div>#}
-                {#								<div class="group_detail fl">#}
-                {#									<a href="#">男鞋</a>					        #}
-                {#								</div>#}
-                {#							</div>#}
-                {#						</div>#}
-                {#					</li>#}
-                {#					<li>#}
-                {#						<div class="level1">#}
-                {#							<a href="#">房产</a><a href="#">汽车</a><a href="#">汽车用品</a>#}
-                {#						</div>#}
-                {#						<div class="level2">#}
-                {#							<div class="list_group">#}
-                {#								<div class="group_name fl">汽车用品 &gt;</div>#}
-                {#								<div class="group_detail fl">#}
-                {#									<a href="#">汽车用品</a>					        #}
-                {#								</div>#}
-                {#							</div>#}
-                {#						</div>#}
-                {#					</li>#}
-                {#					<li>#}
-                {#						<div class="level1">#}
-                {#							<a href="#">母婴</a><a href="#">玩具乐器</a>#}
-                {#						</div>#}
-                {#						<div class="level2">#}
-                {#							<div class="list_group">#}
-                {#								<div class="group_name fl">玩具乐器 &gt;</div>#}
-                {#								<div class="group_detail fl">#}
-                {#									<a href="#">玩具乐器</a>					        #}
-                {#								</div>#}
-                {#							</div>#}
-                {#						</div>#}
-                {#					</li>#}
-                {#					<li>#}
-                {#						<div class="level1">#}
-                {#							<a href="#">食品</a><a href="#">酒类</a><a href="#">生鲜</a><a href="#">特产</a>#}
-                {#						</div>#}
-                {#						<div class="level2">#}
-                {#							<div class="list_group">#}
-                {#								<div class="group_name fl">食品 &gt;</div>#}
-                {#								<div class="group_detail fl">#}
-                {#									<a href="#">食品</a>					        #}
-                {#								</div>#}
-                {#							</div>#}
-                {#						</div>#}
-                {#					</li>#}
-                {#					<li>#}
-                {#						<div class="level1">#}
-                {#							<a href="#">图书</a><a href="#">音像</a><a href="#">电子书</a>#}
-                {#						</div>#}
-                {#						<div class="level2">#}
-                {#							<div class="list_group">#}
-                {#								<div class="group_name fl">图书 &gt;</div>#}
-                {#								<div class="group_detail fl">#}
-                {#									<a href="#">图书</a>					        #}
-                {#								</div>#}
-                {#							</div>#}
-                {#						</div>#}
-                {#					</li>#}
-                {#					<li>#}
-                {#						<div class="level1">#}
-                {#							<a href="#">机票</a><a href="#">酒店</a><a href="#">旅游</a><a href="#">生活</a>#}
-                {#						</div>#}
-                {#						<div class="level2">#}
-                {#							<div class="list_group">#}
-                {#								<div class="group_name fl">机票 &gt;</div>#}
-                {#								<div class="group_detail fl">#}
-                {#									<a href="#">机票</a>					        #}
-                {#								</div>#}
-                {#							</div>#}
-                {#						</div>#}
-                {#					</li>#}
-                {#				</ul>#}
                 <ul class="sub_menu">
                     {% for group in categories.values() %}
                         <li>
@@ -295,7 +113,7 @@
             <div class="new_goods">
                 <h3>热销排行</h3>
                 <ul>
-                    <li v-for="sku in hot_skus">
+                    <li v-for="sku in hot_skus" v-cloak>
                         <a :href="sku.url"><img :src="sku.default_image_url"></a>
                         <h4><a :href="sku.url">[[ sku.name ]]</a></h4>
                         <div class="price">￥[[ sku.price ]]</div>
@@ -329,43 +147,6 @@
             <div class="pagenation">
                 <div id="pagination" class="page"></div>
             </div>
-            {#				<li>#}
-            {#					<a href="detail.html"><img src="{{ static('images/goods/goods005.jpg') }}"></a>#}
-            {#					<h4><a href="detail.html">360手机 N6 Pro 全网通 6GB+128GB 极夜黑</a></h4>#}
-            {#					<div class="operate">#}
-            {#						<span class="price">￥1000.00</span>#}
-            {#						<span class="unit">台</span>#}
-            {#						<a href="#" class="add_goods" title="加入购物车"></a>#}
-            {#					</div>#}
-            {#				</li>#}
-            {#				<li>#}
-            {#					<a href="detail.html"><img src="{{ static('images/goods/goods002.jpg') }}"></a>#}
-            {#					<h4><a href="detail.html">360手机 N6 Pro 全网通 6GB+128GB 极夜黑</a></h4>#}
-            {#					<div class="operate">#}
-            {#						<span class="price">￥2888.80</span>#}
-            {#						<span class="unit">台</span>#}
-            {#						<a href="#" class="add_goods" title="加入购物车"></a>#}
-            {#					</div>#}
-            {#				</li>#}
-            {#                <li>#}
-            {#					<a href="detail.html"><img src="{{ static('images/goods/goods003.jpg') }}"></a>#}
-            {#					<h4><a href="detail.html">360手机 N6 Pro 全网通 6GB+128GB 极夜黑</a></h4>#}
-            {#					<div class="operate">#}
-            {#						<span class="price">￥1666.80</span>#}
-            {#						<span class="unit">台</span>#}
-            {#						<a href="#" class="add_goods" title="加入购物车"></a>#}
-            {#					</div>#}
-            {#				</li>#}
-            {#				<li>#}
-            {#					<a href="detail.html"><img src="{{ static('images/goods/goods005.jpg') }}"></a>#}
-            {#					<h4><a href="detail.html">360手机 N6 Pro 全网通 6GB+128GB 极夜黑</a></h4>#}
-            {#					<div class="operate">#}
-            {#						<span class="price">￥1000.00</span>#}
-            {#						<span class="unit">台</span>#}
-            {#						<a href="#" class="add_goods" title="加入购物车"></a>#}
-            {#					</div>#}
-            {#				</li>#}
-
         </div>
     </div>
     <div class="footer">

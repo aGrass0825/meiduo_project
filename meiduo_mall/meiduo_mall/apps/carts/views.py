@@ -14,6 +14,51 @@ from carts import constants
 # Create your views here.
 
 
+class CartsSimpleView(View):
+    """商品界面右上角购物车"""
+
+    def get(self, request):
+        """实现界面右上角购物车展示"""
+        # 业务逻辑
+        user = request.user
+        # 登录用户
+        if user.is_authenticated and user:
+            # 链接redis数据库
+            redis_conn = get_redis_connection('carts')
+            # 取出redis数据库中当前登录用户所有的商品
+            redis_cart = redis_conn.hgetall('carts_%s' % user.id)
+            # 取出当前登录用户是否勾选商品
+            redis_selected = redis_conn.smembers('selected_%s' % user.id)
+            # 构造从cookie中取出的商品信息格式一致
+            cart_dict = {}
+            for sku_id, count in redis_cart.items():
+                cart_dict[int(sku_id)] = {
+                    'count': int(count),
+                    'selected': sku_id in redis_selected
+                }
+        # 未登录用户
+        else:
+            # 从cookie中取出valu
+            cart_str = request.COOKIES.get('carts')
+            if cart_str:
+                # 将字符串转换成字典
+                cart_dict = pickle.loads(base64.b64decode(cart_str.encode()))
+            else:
+                cart_dict = {}
+        # 构造json数据
+        cart_skus = []
+        sku_ids = cart_dict.keys()
+        skus = SKU.objects.filter(id__in=sku_ids)
+        for sku in skus:
+            cart_skus.append({
+                'id': sku.id,
+                'name': sku.name,
+                'count': cart_dict.get(sku.id).get('count'),
+                'default_image_url': sku.default_image.url
+            })
+        return http.JsonResponse({'code': RETCODE.OK, 'errmsg': 'OK', 'cart_skus': cart_skus})
+
+
 class CartsSelectAllView(View):
     """全选购物车"""
 

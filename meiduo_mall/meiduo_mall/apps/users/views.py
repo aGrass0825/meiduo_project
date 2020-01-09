@@ -19,6 +19,7 @@ from users.utils import check_verify_email_token
 from users.models import Address
 from users import constants
 from goods.models import SKU
+from carts.utils import merge_carts_cookie_to_redis
 # Create your views here.
 
 logger = logging.getLogger('django')  # 创建日志输出器
@@ -491,6 +492,9 @@ class LoginView(View):
             response = redirect(reverse('contents:index'))
         # 为了首页显示用户登录信息，将用户名缓存到cookie中
         response.set_cookie('username', user.username, max_age=3600 * 24 * 15)
+        # 当用户登录时就开始合并购物车
+        response = merge_carts_cookie_to_redis(request=request, user=user, response=response)
+
         return response
 
 

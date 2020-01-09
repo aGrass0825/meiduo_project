@@ -13,7 +13,7 @@ from oauth.models import OAuthQQUser
 from meiduo_mall.utils.response_code import RETCODE
 from oauth.utils import generate_access_token, check_access_token
 from users.models import User
-
+from carts.utils import merge_carts_cookie_to_redis
 # Create your views here.
 
 # 创建日志输出器
@@ -55,6 +55,8 @@ class QQAuthUserView(View):
             response = redirect(next)
             # 登录时用户名写入cookie中
             response.set_cookie('username', qq_user.username, max_age=3600 * 24 * 15)
+            # 当用户登录后合并购物车
+            response = merge_carts_cookie_to_redis(request=request, user=qq_user, response=response)
             return response
 
     def post(self, request):
@@ -105,6 +107,8 @@ class QQAuthUserView(View):
         response = redirect(next)
         # 登录时用户名写入cookie
         response.set_cookie('username', user.username, max_age=3600 * 24 * 15)
+        # 当用户登录后合并购物车
+        response = merge_carts_cookie_to_redis(request=request, user=oauth_qq_user.user, response=response)
         return response
 
 
