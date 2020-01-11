@@ -6,6 +6,7 @@ from django.contrib.auth import login, authenticate, logout
 from django.db import DatabaseError
 from django.shortcuts import render, redirect
 from django.urls import reverse
+from django.utils.decorators import method_decorator
 from django.views import View
 from django_redis import get_redis_connection
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -19,7 +20,7 @@ from users.utils import check_verify_email_token
 from users.models import Address
 from users import constants
 from goods.models import SKU
-from carts.utils import merge_carts_cookie_to_redis
+from carts.utils import merge_carts_cookie_to_redis, afer_login
 # Create your views here.
 
 logger = logging.getLogger('django')  # 创建日志输出器
@@ -448,6 +449,7 @@ class LogoutView(View):
         return response
 
 
+@method_decorator(afer_login, name='post')
 class LoginView(View):
     """用户登录"""
 
@@ -493,7 +495,7 @@ class LoginView(View):
         # 为了首页显示用户登录信息，将用户名缓存到cookie中
         response.set_cookie('username', user.username, max_age=3600 * 24 * 15)
         # 当用户登录时就开始合并购物车
-        response = merge_carts_cookie_to_redis(request=request, user=user, response=response)
+        # response = merge_carts_cookie_to_redis(request=request, user=user, response=response)
 
         return response
 
@@ -524,6 +526,7 @@ class MobileCountView(View):
         return http.JsonResponse({'code': RETCODE.OK, 'errmsg': 'OK', 'count': count})
 
 
+@method_decorator(afer_login, name='post')
 class RegisterView(View):
     """用户注册"""
 

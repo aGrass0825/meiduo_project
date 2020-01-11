@@ -26,4 +26,5 @@ urlpatterns = [
     url(r'^', include('goods.urls', namespace='goods')),
     url(r'^search/', include('haystack.urls')),  # 配置haystack路由
     url(r'^', include('carts.urls', namespace='carts')),  # 购物车
+    url(r'^', include('orders.urls', namespace='orders')),  # 订单
 ]

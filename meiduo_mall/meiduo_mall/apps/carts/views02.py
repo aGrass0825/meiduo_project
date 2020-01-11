@@ -1,13 +1,10 @@
 import base64
 import json
 import pickle
-from itsdangerous import JSONWebSignatureSerializer as serializer
-
 from django import http
 from django.shortcuts import render
 from django.views import View
 from django_redis import get_redis_connection
-from django.conf import settings
 
 from meiduo_mall.utils.response_code import RETCODE
 from goods.models import SKU
@@ -38,26 +35,14 @@ class CartMixin(View):  # View的父类就是object
         if not cart_bytes:
             return {}
         cart_dict = pickle.loads(base64.b64decode(cart_bytes))
-        # cart_dict = pickle.loads(cart_bytes)
         return cart_dict
 
-    # JWT加密， 对cookie中的购物车信息加密
-    s = serializer(settings.SECRET_KEY)
-    cookie_decode = (s.loads, lambda c: {int(k): c[k] for k in c})
-    cookie_encode = (lambda c: {str(k): c[k] for k in c}, s.dumps,)
-
-    # cookie_decode = (s.loads, )
-    # cookie_encode = (s.dumps, )
-    # cookie_decode = (str.encode, base64.b64decode, pickle.loads)
-    # cookie_encode = (pickle.dumps, base64.b64encode, bytes.decode)
     def read_cookie_cart(self, request):
-        cart = request.COOKIES.get('CART')
-        if not cart:
+        cart_str = request.COOKIES.get('CART')
+        if not cart_str:
             return {}
-        # cart_dict = pickle.loads(base64.b64decode(cart_str.encode()))
-        for f in self.cookie_decode:
-            cart = f(cart)
-        return cart
+        cart_dict = pickle.loads(base64.b64decode(cart_str.encode()))
+        return cart_dict
 
     def write_cart(self, request, response, cart_dict):
         user = request.user
@@ -70,14 +55,11 @@ class CartMixin(View):  # View的父类就是object
         key = 'carts_%s' % user_id
         redis_conn = get_redis_connection("carts")
         cart_bytes = base64.b64encode(pickle.dumps(cart_dict))
-        # cart_bytes = pickle.dumps(cart_dict)
         redis_conn.set(key, cart_bytes)
 
-    def write_cookie_cart(self, response, cart):
-        # cart_str = base64.b64encode(pickle.dumps(cart_dict)).decode()
-        for f in self.cookie_encode:
-            cart = f(cart)
-        response.set_cookie("CART", cart)
+    def write_cookie_cart(self, response, cart_dict):
+        cart_str = base64.b64encode(pickle.dumps(cart_dict)).decode()
+        response.set_cookie("CART", cart_str)
 
 
 class CartsSimpleView(CartMixin, View):

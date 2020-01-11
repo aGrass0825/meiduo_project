@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'goods',  # 商品数据库模型子应用
     'haystack',  # 搜索引擎的注册
     'carts',  # 购物车
+    'orders',  # 订单
 ]
 
 MIDDLEWARE = [

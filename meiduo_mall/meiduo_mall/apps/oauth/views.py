@@ -3,6 +3,7 @@ import re
 
 from django.conf import settings
 from django.contrib.auth import login
+from django.utils.decorators import method_decorator
 from django.views import View
 from django.shortcuts import render, redirect
 from django import http
@@ -13,13 +14,16 @@ from oauth.models import OAuthQQUser
 from meiduo_mall.utils.response_code import RETCODE
 from oauth.utils import generate_access_token, check_access_token
 from users.models import User
-from carts.utils import merge_carts_cookie_to_redis
+from carts.utils import merge_carts_cookie_to_redis, afer_login
+
 # Create your views here.
 
 # 创建日志输出器
 logger = logging.getLogger('django')
 
 
+@method_decorator(afer_login, name='get')
+@method_decorator(afer_login, name='post')
 class QQAuthUserView(View):
     """处理QQ登录回调界面"""
 
@@ -56,7 +60,7 @@ class QQAuthUserView(View):
             # 登录时用户名写入cookie中
             response.set_cookie('username', qq_user.username, max_age=3600 * 24 * 15)
             # 当用户登录后合并购物车
-            response = merge_carts_cookie_to_redis(request=request, user=qq_user, response=response)
+            # response = merge_carts_cookie_to_redis(request=request, user=qq_user, response=response)
             return response
 
     def post(self, request):
@@ -108,7 +112,7 @@ class QQAuthUserView(View):
         # 登录时用户名写入cookie
         response.set_cookie('username', user.username, max_age=3600 * 24 * 15)
         # 当用户登录后合并购物车
-        response = merge_carts_cookie_to_redis(request=request, user=oauth_qq_user.user, response=response)
+        # response = merge_carts_cookie_to_redis(request=request, user=oauth_qq_user.user, response=response)
         return response
 
 
