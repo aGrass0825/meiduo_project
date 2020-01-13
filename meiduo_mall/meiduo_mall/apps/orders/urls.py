@@ -8,6 +8,5 @@ urlpatterns = [
     url(r'^orders/commit/$', views.OrderCommitView.as_view()),
     # 提交订单成功界面
     url(r'orders/success/$', views.OrderSuccessView.as_view()),
-    # 支付宝
 
 ]

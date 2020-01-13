@@ -9,6 +9,7 @@ from django.views import View
 from django_redis import get_redis_connection
 from django.db import transaction
 
+from carts.views import CartMixin
 from meiduo_mall.utils.views import LoginRequiredJSONMixin, LoginRequiredMixin
 from users.models import Address
 from goods.models import SKU
@@ -41,7 +42,7 @@ class OrderSuccessView(LoginRequiredMixin, View):
         return render(request, 'order_success.html', context)
 
 
-class OrderCommitView(LoginRequiredJSONMixin, View):
+class OrderCommitView(CartMixin, LoginRequiredJSONMixin, View):
     """提交订单"""
 
     def post(self, request):
@@ -90,12 +91,15 @@ class OrderCommitView(LoginRequiredJSONMixin, View):
                 )
 
                 # 从redis中读取被选中的购物车信息
-                redis_conn = get_redis_connection('carts')
-                redis_cart = redis_conn.hgetall('carts_%s' % user.id)
-                redis_selected = redis_conn.smembers('selected_%s' % user.id)
+                # redis_conn = get_redis_connection('carts')
+                # redis_cart = redis_conn.hgetall('carts_%s' % user.id)
+                # redis_selected = redis_conn.smembers('selected_%s' % user.id)
                 cart = {}
-                for sku_id in redis_selected:
-                    cart[int(sku_id)] = int(redis_cart[sku_id])
+                if not cart:
+                    cart_dict = request.cart
+                    for sku_id in cart_dict:
+                        # cart_dict[int(sku_id)] = int(redis_cart[sku_id])
+                        cart[sku_id] = cart_dict[sku_id][0]
 
                 sku_dis = cart.keys()
                 for sku_id in sku_dis:
@@ -157,15 +161,20 @@ class OrderCommitView(LoginRequiredJSONMixin, View):
             transaction.savepoint_commit(save_id)
 
         # 清除购物车中的数据
-        pl = redis_conn.pipeline()
-        pl.hdel('carts_%s' % user.id, *redis_selected)
-        pl.srem('selected_%s' % user.id, *redis_selected)
-        pl.execute()
+        # pl = redis_conn.pipeline()
+        # pl.hdel('carts_%s' % user.id, *redis_selected)
+        # pl.srem('selected_%s' % user.id, *redis_selected)
+        # pl.execute()
+
+        # 清除购物车中的数据
+        redis_conn = get_redis_connection("carts")
+        user = request.user
+        redis_conn.delete('carts_%s' % user.id)
         # 响应参数
         return http.JsonResponse({'code': RETCODE.OK, 'errmsg': '下单成功', 'order_id': order.order_id})
 
 
-class OrderSettlementView(LoginRequiredMixin, View):
+class OrderSettlementView(CartMixin, LoginRequiredMixin, View):
     """商品订单"""
 
     def get(self, request):
@@ -178,13 +187,16 @@ class OrderSettlementView(LoginRequiredMixin, View):
         except Address.DoesNotExist:
             addresses = None
 
-        # 从redis中查询被勾选的商品
-        redis_conn = get_redis_connection('carts')
-        redis_cart = redis_conn.hgetall('carts_%s' % user.id)
-        redis_selected = redis_conn.smembers('selected_%s' % user.id)
+        # # 从redis中查询被勾选的商品
+        # redis_conn = get_redis_connection('carts')
+        # redis_cart = redis_conn.hgetall('carts_%s' % user.id)
+        # redis_selected = redis_conn.smembers('selected_%s' % user.id)
         cart = {}
-        for sku_id in redis_selected:
-            cart[int(sku_id)] = int(redis_cart[sku_id])
+        if not cart:
+            cart_dict = request.cart
+            for sku_id in cart_dict:
+                # cart_dict[int(sku_id)] = int(redis_cart[sku_id])
+                cart[sku_id] = cart_dict[sku_id][0]
 
         # 准备初始值
         total_count = 0
