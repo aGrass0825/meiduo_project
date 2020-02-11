@@ -28,4 +28,5 @@ urlpatterns = [
     url(r'^', include('carts.urls', namespace='carts')),  # 购物车
     url(r'^', include('orders.urls', namespace='orders')),  # 订单
     url(r'^', include('payment.urls')),  # 订单支付
+    url(r'^meiduo_admin/', include('meiduo_admin.urls')),  # 后台管理
 ]
