@@ -1,3 +1,5 @@
+import re
+
 from django.utils import timezone
 
 from rest_framework import serializers
@@ -56,4 +58,33 @@ class AdminAuthSerializer(serializers.ModelSerializer):
 
         # 给user对象增加属性token,保存jwt token
         user.token = token
+        return user
+
+
+class UserInfoSerializer(serializers.ModelSerializer):
+    """用户序列化器类"""
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'mobile', 'email', 'password')
+
+        extra_kwargs = {
+            'password': {
+                'write_only': True
+            }
+        }
+
+    # 在序列化器类中定义特定方法validate_<field_name>，针对特定字段进行补充验证
+    def validate_mobile(self, value):
+        # 手机号格式校验
+        if not re.match(r'^1[3-9]\d{9}$', value):
+            raise serializers.ValidationError('手机号格式错误')
+        # 手机号是否注册
+        count = User.objects.filter(mobile=value).count()
+        if count > 0:
+            raise serializers.ValidationError('手机号已注册')
+        return value
+
+    def create(self, validated_data):
+        # 保存用户数据，默认create不会对密码进行加密保存故重写
+        user = User.objects.create_user(**validated_data)
         return user
