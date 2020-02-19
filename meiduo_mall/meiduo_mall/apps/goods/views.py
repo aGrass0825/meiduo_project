@@ -178,7 +178,7 @@ class ListView(View):
             sort = 'default'  # 防止用户乱输入排序方式发送请求 将default赋值给sort
             sort_field = 'create_time'  # 创建时间为默认 时间越新排前
         cat1 = breadcrumb['cat1']
-        channel = cat1.goodschannel_set.get()
+        channel = cat1.channels.get()
         # channel = category.parent.parent.goodschannel_set.get() # 一对多访问 用一级分类
         cat1.url = channel.url
         # 分页查询和排序

@@ -117,8 +117,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',  # 数据库引擎
         'HOST': '127.0.0.1',  # 数据库主机
         'PORT': 3306,  # 数据库端口
-        'USER': 'meiduo_zhs',  # 数据库用户名
-        'PASSWORD': '123456',  # 数据库用户密码
+        'USER': 'root',  # 数据库用户名meiduo_zhs
+        'PASSWORD': 'mysql',  # 数据库用户密码123456
         'NAME': 'meiduo'  # 数据库名字
     }
 }
@@ -265,10 +265,10 @@ EMAIL_FROM = '美多商城<hmmeiduo@163.com>'  # 发件人抬头
 EMAIL_VERIFY_URL = 'http://www.meiduo.site:8000/emails/verification/'
 
 # 配置自定义文件存储类
-DEFAULT_FILE_STORAGE = 'meiduo_mall.utils.fastdfs.fdfs_storage.FastDFSStorage'
-# 配置ip协议参数 在/etc/hosts中添加访问Storage的域名192.168.116.128 image.meiduo.site
+DEFAULT_FILE_STORAGE = 'meiduo_mall.utils.fastdfs.storage.FDFSStorage'
+# 配置ip协议参数 在/etc/hosts中添加访问Storage的域名192.168.116.129 image.meiduo.site
 FDFS_BASE_URL = 'http://image.meiduo.site:8888/'
-
+FDFS_CLIENT_CONF = os.path.join(BASE_DIR, 'utils/fastdfs/client.conf')
 # Haystack
 HAYSTACK_CONNECTIONS = {
     'default': {
